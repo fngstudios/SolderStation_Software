@@ -2,7 +2,7 @@
 
 Software for https://github.com/fngstudios/SolderStation  
 
-##Library
+##Libraries
 
 *MAX31856 library by: Peter Easton - https://github.com/engineertype/MAX31856  
 *Button library by: Jack Christensen - https://github.com/JChristensen/Button  
