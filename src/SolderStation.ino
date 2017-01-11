@@ -5,16 +5,16 @@
     fngStudios
     26/07/2016
     Ezequiel Pedace
-    
+
     Change log:
-    
+
     v0.2 25/08/2016
     -Detect TC errors
     -Auto Off timer, configurable.
-    
+
     v0.1 26/07/2016
     First Version
-    
+
 
 
  */
@@ -26,7 +26,7 @@
 #include <EEPROM.h>
 #include <Button.h>
 #include <PID_v1.h>
-//------------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------------
 //    Defines
 
 
@@ -47,7 +47,7 @@
 #define MAX_KP              100
 #define MIN_KP              2
 #define DEFAULT_KP          10
-#define MAX_KI              0.1
+#define MAX_KI              3.9
 #define MIN_KI              0.0001
 #define DEFAULT_KI          0.001
 #define MAX_KD              30
@@ -55,7 +55,7 @@
 #define DEFAULT_KD          5
 #define VALID_CONFIG        'y'
 #define CONFIG_EEPROM_ADDR  30
-//------------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------------
 //    Variables de programa
 
 char TC_Desc[9]="BEJKNRST";
@@ -68,9 +68,9 @@ unsigned char Estado = 0;  //0:Working 1:Idle 2:Menu 3:OFF
 unsigned char Menu_Page = 0;
 String temp;
 long TimeStamp = 0;
-//------------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------------
 //   Estructura de configuracion
-  
+
  struct Configuration_T {
   unsigned char IDLE_T;
   unsigned char CONTRASTE;
@@ -82,8 +82,8 @@ long TimeStamp = 0;
   byte VALID; // Ultimo, para comprobaciones de integridad.
 } Current_Config;
 
- 
-//------------------------------------------------------------------------------------- 
+
+//-------------------------------------------------------------------------------------
 //    Constructores
 
 LiquidCrystal lcd(2, 4, 8, 7, 6, 5);
@@ -98,7 +98,7 @@ void setup() {
     loadConfig();
     Init_HW();
     LCD_Init();
-  
+
 
 }
 
@@ -106,9 +106,9 @@ void setup() {
 
 void loop() {
   checkBtns();
-  readTC();  
-  doWork();  
-  refreshLCD();   
+  readTC();
+  doWork();
+  refreshLCD();
   myPID.Compute();
   updateOutput();
   delay(200);
@@ -118,53 +118,53 @@ void loop() {
 
 
 void checkBtns(){
-  
+
    btnProg.read();
    btnIdle.read();
 
-   
+
 }
 
 
 
 void doWork(){
-  
+
   switch(Estado){
     case 0:        setPoint = readPote();
                    if (btnIdle.wasPressed()){Estado = 1;SetOffTime();}
                    if (btnProg.pressedFor(LONG_PRESS)){Estado = 2;lcd.clear();while(btnProg.isPressed()){checkBtns();}}
                    break;
-                   
+
     case 1:        setPoint = Current_Config.IDLE_T;
                    if (btnIdle.wasPressed()){Estado = 0;}
                    if (btnProg.pressedFor(LONG_PRESS)){Estado = 2;lcd.clear();while(btnProg.isPressed()){checkBtns();}}
                    if (checkOffTime()){Estado = 3;};
                    break;
 
-    case 2:        
+    case 2:
                    switch (Menu_Page){
                       case 0:         Current_Config.IDLE_T = readPote();   // prog idle setpoint
                                       if (btnIdle.wasPressed()){Menu_Page = 1;lcd.clear();}
-                                      break;    
+                                      break;
                       case 1:         Current_Config.CONTRASTE = readPote();   // prog contrast
                                       setContraste();
                                       if (btnIdle.wasPressed()){Menu_Page = 2;lcd.clear();}
-                                      break;    
+                                      break;
                       case 2:         Current_Config.TC_TYPE = readPote();   // prog TC Type
                                       if (btnIdle.wasPressed()){Menu_Page = 3;lcd.clear();}
-                                      break;    
+                                      break;
                       case 3:         Current_Config.KP = readPote();   // prog KP
                                       if (btnIdle.wasPressed()){Menu_Page = 4;lcd.clear();}
-                                      break;    
+                                      break;
                       case 4:         Current_Config.KI = readPote();   // prog KI
                                       if (btnIdle.wasPressed()){Menu_Page = 5;lcd.clear();}
-                                      break;    
+                                      break;
                       case 5:         Current_Config.KD = readPote();   // prog KD
                                       if (btnIdle.wasPressed()){Menu_Page = 6;lcd.clear();}
-                                      break;    
+                                      break;
                       case 6:         Current_Config.OFF_TIME = readPote();   // prog OFF_TIME
                                       if (btnIdle.wasPressed()){Menu_Page = 0;lcd.clear();}
-                                      break;    
+                                      break;
 
                    }
                    if (btnProg.pressedFor(LONG_PRESS)){saveConfig();Estado = 0;lcd.clear();while(btnProg.isPressed()){checkBtns();}}
@@ -173,8 +173,8 @@ void doWork(){
      case 3:       setPoint = 0;
                    if (btnIdle.wasPressed()){Estado = 1;SetOffTime();}
                    if (btnProg.wasPressed()){Estado = 1;SetOffTime();}
-                   break; 
-          
+                   break;
+
 }
 }
 
@@ -200,8 +200,8 @@ void loadConfig(){
 void saveConfig(){
       EEPROM.put(CONFIG_EEPROM_ADDR,Current_Config);
       myPID.SetTunings(Current_Config.KP, Current_Config.KI, Current_Config.KD);
-      setTC_Type();  
-}  
+      setTC_Type();
+}
 
 void SetOffTime(){
   TimeStamp = millis();
